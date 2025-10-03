@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSONPlaceholder Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    section {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: .5rem;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    li:hover {
+      background: #f1f1f1;
+    }
+    form input, form textarea, form button {
+      width: 100%;
+      margin: .5rem 0;
+      padding: .6rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    form button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    form button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JSONPlaceholder Dashboard</h1>
+  </header>
+
+  <main>
+    <!-- Posts List -->
+    <section>
+      <h2>Posts</h2>
+      <ul id="postList"></ul>
+    </section>
+
+    <!-- Comments + New Post -->
+    <section>
+      <h2>Comments</h2>
+      <ul id="commentList"></ul>
+
+      <h2>Add New Post</h2>
+      <form id="postForm">
+        <input type="text" id="title" placeholder="Post Title" required>
+        <textarea id="body" placeholder="Post Content" rows="4" required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+
+    var postList = document.getElementById('postList');
+    var commentList = document.getElementById('commentList');
+    var postForm = document.getElementById('postForm');
+
+    var defaultPosts = [
+      { id: 1, title: 'iron man' },
+      { id: 2, title: 'hulk' },
+      { id: 3, title: 'spider_man' },
+      { id: 3, title: 'black_widow' },
+      { id: 4, title: 'thor' },
+      { id: 5, title: 'captain america' },
+      { id: 6, title: 'loki' },
+      { id: 7, title: 'doctor strange' },
+      { id: 8, title: 'black panther' }
+    ];
+
+    var defaultComments = {
+      1: [ { email: 'reman@gmail.com', body: 'Nice!' } ],
+      2: [ { email: 'theo@gmail.com', body: 'Good read.' } ],
+      3: [ { email: 'haja@gmail.com', body: 'Nice!' } ],
+      4: [ { email: 'rahul@gmail.com', body: 'Nice!' } ],
+      5: [ { email: 'ravi@gmail.com', body: 'Nice!' } ],
+      6: [ { email: 'tony@gmail.com', body: 'Nice!' } ],
+      7: [ { email: 'stark@gmail.com', body: 'Nice!' } ],
+      8: []
+    };
+
+
+    var posts = [];
+    var comments = {};
+
+    function loadData() {
+      try {
+        var p = localStorage.getItem('simple_posts');
+        var c = localStorage.getItem('simple_comments');
+        if (p) posts = JSON.parse(p);
+        else posts = defaultPosts.slice(); 
+        if (c) comments = JSON.parse(c);
+        else comments = JSON.parse(JSON.stringify(defaultComments));
+      } catch (err) {
+        console.error('Error reading localStorage, using defaults', err);
+        posts = defaultPosts.slice();
+        comments = JSON.parse(JSON.stringify(defaultComments));
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem('simple_posts', JSON.stringify(posts));
+        localStorage.setItem('simple_comments', JSON.stringify(comments));
+      } catch (err) {
+        console.error('Could not save to localStorage', err);
+      }
+    }
+
+    function renderPosts() {
+      postList.innerHTML = '';
+      posts.forEach(function(p) {
+        var li = document.createElement('li');
+        li.textContent = p.title;
+        li.onclick = function() { renderComments(p.id); };
+        postList.appendChild(li);
+      });
+    }
+
+    function renderComments(postId) {
+      var list = comments[postId] || [];
+      commentList.innerHTML = '';
+      if (list.length === 0) {
+        commentList.innerHTML = '<li>No comments</li>';
+        return;
+      }
+      list.forEach(function(c) {
+        var li = document.createElement('li');
+        li.textContent = c.email + ': ' + c.body;
+        commentList.appendChild(li);
+      });
+    }
+
+    postForm.onsubmit = function(e) {
+      e.preventDefault();
+      var title = document.getElementById('title').value.trim();
+      var body = document.getElementById('body').value.trim();
+      if (!title || !body) {
+        alert('Please enter title and content');
+        return;
+      }
+    
+      var nextId = posts.reduce(function(max, p) { return Math.max(max, p.id); }, 0) + 1;
+      posts.push({ id: nextId, title: title });
+      comments[nextId] = [ { email: 'you@example.com', body: body } ];
+      saveData();
+      renderPosts();
+      postForm.reset();
+      alert('Post saved to your browser (localStorage).');
+    };
+
+
+    loadData();
+    renderPosts();
+  </script>
+</body>
+</html>
